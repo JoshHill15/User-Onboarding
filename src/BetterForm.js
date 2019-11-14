@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 
+
 const validate = ({ name, email, password, status }) => {
   const errors = {};
   if (!name) {
@@ -18,15 +19,20 @@ const validate = ({ name, email, password, status }) => {
     errors.password = "You need to input a password!";
   } else if (password.length < 7) {
     errors.password = "You need a longer password!";
+  } else if( password === "!"){
+      errors.password = "error"
   }
 
   return errors;
 };
 
 function BetterForm({status}) {
-  const [user, setUser] = useState([]);
+  const [user, setUser] = useState("");
+  const [submit, setSubmit] = useState(false)
+
   const handleSubmit = (values, tools) => {
-    axios
+   setSubmit(true)
+   setTimeout(() => axios
       .post("https://reqres.in/api/users", values)
       .then(res => {
         setUser(res.data);
@@ -34,17 +40,18 @@ function BetterForm({status}) {
       })
       .catch(err => console.log("error", err))
       .finally(() => {
-          tools.setSubmitting(false)
-      });
+          setSubmit(false)
+      }), 1000)
   };
+
   useEffect(() => {
     status && setUser(user => [...user, status])
-}, [status])
+ }, [status])
 
   return (
-    <div>
+    <div >
       <Formik
-        initialValues={{ name: "", email: "", password: "" }}
+        initialValues={{ name: "", email: "", password: "" , drop: ""}}
         onSubmit={handleSubmit}
         validate={validate}
         render={props => {
@@ -59,11 +66,7 @@ function BetterForm({status}) {
                 <Field name="email" type="email" placeholder="enter email" />
                 <ErrorMessage name="email" component="span" />
                 <br />
-                <Field
-                  name="password"
-                  type="password"
-                  placeholder="enter password"
-                />
+                <Field name="password" type="password" placeholder="enter password" />
                 <ErrorMessage name="password" component="span" />
                 <br />
                 <label>
@@ -75,18 +78,29 @@ function BetterForm({status}) {
                   />
                 </label>
                 <br />
+                <Field as= "select" name = "drop">
+                    <option>What's your Role?</option>
+                    <option value = "Software Engineer">Software Engineer</option>
+                    <option value = "Data Scientist">Data Scientist</option>
+                    <option value = "UI/UX Designer">UI/UX Designer</option>
+                </Field>
+                <br />
+                <br />
                 <button type="submit" disabled = {props.isSubmitting}>
-                    {props.isSubmitting ? "SUBMITTING" : "Submit"}
+                    {submit ? "SUBMITTING" : "Submit"}
                 </button>
               </Form>
-              {/* <p>{user.name}</p>
-              <p>{user.email}</p>
-              <p>{user.password}</p> */}
-                  {user.map(cv => (
+              <div className = "forms">
+                <p className = "form">{user.name}</p>
+                <p className = "form">{user.email}</p>
+                <p className = "form">{user.password}</p>
+                <p className = "form">{user.drop}</p>
+              </div> 
+                  {/* {user.map(cv => (
                         <ul>
                             <li>{cv.name}</li>
                         </ul>
-                      ))}
+                      ))} */}
             </div>
           );
         }}
